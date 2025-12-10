@@ -10,11 +10,12 @@ Key difference from Pattern D: The agent controls the loop, not your code.
 """
 
 import sys
+from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from dotenv import load_dotenv
-from agents import Agent, Runner, function_tool
+from agents import Agent, Runner, RunContextWrapper, function_tool
 
 # Load .env from project root
 load_dotenv(Path(__file__).parents[2] / ".env")
@@ -78,13 +79,19 @@ def book_slot(slot_id: str, user_id: str = "guest") -> str:
         return f"Booking failed: {result['error']}"
 
 
-# Create the booking agent
-booking_agent = Agent(
-    name="Tennis Court Booking Agent",
-    instructions="""You are a helpful tennis court booking assistant. Your job is to help users:
+def get_instructions(
+    context: RunContextWrapper[Any], agent: Agent[Any]
+) -> str:
+    """Generate dynamic instructions with current datetime."""
+    now = datetime.now()
+    current_datetime = now.strftime("%Y-%m-%d %H:%M (%A)")
+
+    return f"""You are a helpful tennis court booking assistant. Your job is to help users:
 
 1. Find available tennis court slots
 2. Book slots for them
+
+CURRENT DATETIME: {current_datetime}
 
 WORKFLOW:
 - When a user wants to book, FIRST check availability for their preferred date/time
@@ -93,12 +100,18 @@ WORKFLOW:
 - Always confirm the booking details
 
 GUIDELINES:
-- If the user says "tomorrow", calculate the actual date
+- Convert relative dates ("tomorrow", "next Monday") to YYYY-MM-DD format
 - If no time is specified, show all available slots for that day
 - Be concise but friendly
 - Always use the tools to check real availability - don't make up slots
 
-IMPORTANT: You control the conversation flow. Decide autonomously when to check availability vs when to book.""",
+IMPORTANT: You control the conversation flow. Decide autonomously when to check availability vs when to book."""
+
+
+# Create the booking agent
+booking_agent = Agent(
+    name="Tennis Court Booking Agent",
+    instructions=get_instructions,
     tools=[check_availability, book_slot],
 )
 
@@ -129,21 +142,3 @@ def run_agent_sync(user_message: str) -> str:
     """
     result = Runner.run_sync(booking_agent, user_message)
     return result.final_output
-
-
-# CLI for quick testing
-if __name__ == "__main__":
-    from datetime import datetime, timedelta
-
-    # Calculate tomorrow's date for the demo
-    tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
-
-    print("=" * 50)
-    print("Pattern E: Single Agent Demo")
-    print("=" * 50)
-    print()
-
-    test_message = f"I'd like to book a tennis court for {tomorrow} around 3pm"
-    print(f"User: {test_message}")
-    print()
-    print("Agent:", run_agent_sync(test_message))
