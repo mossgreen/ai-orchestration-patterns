@@ -49,28 +49,35 @@ User Request
 ### 1. Install Dependencies
 
 ```bash
-cd pattern-e
-pip install -r requirements.txt
+cd pattern-e-single-agent
+uv venv && source .venv/bin/activate
+uv pip install -r requirements.txt
 ```
 
 ### 2. Set OpenAI API Key
+
+Create a `.env` file in the project root:
+
+```bash
+OPENAI_API_KEY=your-api-key
+```
+
+Or export directly:
 
 ```bash
 export OPENAI_API_KEY="your-api-key"
 ```
 
-### 3. Run CLI Demo
+### 3. Run Demo
 
 ```bash
-# From project root
-python -m pattern-e.src.agent
+uv run src/demo.py
 ```
 
 ### 4. Run API Server
 
 ```bash
-# From project root
-uvicorn pattern-e.src.api:app --reload
+uv run uvicorn src.api:app --reload
 ```
 
 ### 5. Test with curl

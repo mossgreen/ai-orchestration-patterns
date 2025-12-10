@@ -25,10 +25,6 @@ class ChatRequest(BaseModel):
         description="User message to the booking agent",
         examples=["Book a tennis court for tomorrow at 3pm"],
     )
-    user_id: str = Field(
-        default="guest",
-        description="Optional user identifier for the booking",
-    )
 
 
 class ChatResponse(BaseModel):
@@ -53,12 +49,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
     This is Pattern E: the agent controls its own reasoning loop.
     """
     try:
-        # Include user_id context in the message if provided
-        message = request.message
-        if request.user_id != "guest":
-            message = f"[User: {request.user_id}] {message}"
-
-        response = await run_agent(message)
+        response = await run_agent(request.message)
         return ChatResponse(response=response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -68,17 +59,3 @@ async def chat(request: ChatRequest) -> ChatResponse:
 async def health():
     """Health check endpoint."""
     return {"status": "healthy", "pattern": "E - Single Agent"}
-
-
-@app.get("/")
-async def root():
-    """Root endpoint with API info."""
-    return {
-        "name": "Tennis Court Booking Agent",
-        "pattern": "E - Single Agent",
-        "description": "Agent autonomously manages the booking workflow",
-        "endpoints": {
-            "POST /chat": "Send a message to the booking agent",
-            "GET /health": "Health check",
-        },
-    }
