@@ -19,8 +19,8 @@ Read the blog first for architecture diagrams, trade-offs, and decision guides.
 | [A - AI as Service](./pattern-a-ai-as-service/) | No agent, LLM parses only | Shared | ⏳ Planned |
 | [B - Workflow (Shared)](./pattern-b-workflow-shared/) | Fixed sequence | Shared | ⏳ Planned |
 | [C - Workflow (Independent)](./pattern-c-workflow-independent/) | Fixed sequence | Independent services | 🚧 In Progress |
-| [D - Function Calling](./pattern-d-function-calling/) | LLM suggests, you control loop | Shared | ⏳ Planned |
-| [E - Single Agent](./pattern-e-single-agent/) | Agent controls the loop | Shared | ⏳ Planned |
+| [D - Function Calling](./pattern-d-function-calling/) | LLM suggests, you control loop | Shared | ✅ Done |
+| [E - Single Agent](./pattern-e-single-agent/) | Agent controls the loop | Shared | ✅ Done |
 | [F - Multi-Agent (Shared)](./pattern-f-multi-agent-shared/) | Manager routes dynamically | Shared | ⏳ Planned |
 | [G - Multi-Agent (Independent)](./pattern-g-multi-agent-independent/) | Manager routes dynamically | Independent services | ⏳ Planned |
 | [H - Bedrock Agent](./pattern-h-bedrock-agent/) | AWS-managed agent | Managed | ⏳ Planned |
@@ -51,6 +51,7 @@ control steps   steps  suggests controls routes  routes manages
 ## Tech Stack
 
 - **Language:** Python
+- **Package Manager:** UV
 - **AI Providers:** OpenAI, Anthropic Claude, AWS Bedrock
 - **Agent Framework:** OpenAI Agents SDK
 - **API:** FastAPI
@@ -99,9 +100,10 @@ pattern-x/
 ## Getting Started
 
 ```bash
-cd pattern-c-workflow-independent
-pip install -r requirements.txt
-terraform init && terraform apply  # coming soon
+cd pattern-d-function-calling
+uv venv && source .venv/bin/activate
+uv pip install -r requirements.txt
+python src/demo.py
 ```
 
 ## Why This Repo?
