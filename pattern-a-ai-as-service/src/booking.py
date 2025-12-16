@@ -26,7 +26,7 @@ from shared.booking_service import get_booking_service
 _booking_service = get_booking_service()
 
 
-def process_booking(intent: ParsedIntent, user_id: str = "guest") -> str:
+def process_booking(intent: ParsedIntent) -> str:
     """
     Process a booking request using YOUR hardcoded logic.
 
@@ -39,7 +39,6 @@ def process_booking(intent: ParsedIntent, user_id: str = "guest") -> str:
 
     Args:
         intent: The parsed intent from the LLM (date, time extracted)
-        user_id: User making the booking
 
     Returns:
         Human-readable response (confirmation or error message)
@@ -69,7 +68,7 @@ def process_booking(intent: ParsedIntent, user_id: str = "guest") -> str:
     # ============================================================
     # YOUR CODE: Book the slot
     # ============================================================
-    result = _booking_service.book(selected_slot["slot_id"], user_id)
+    result = _booking_service.book(selected_slot["slot_id"])
 
     if not result["success"]:
         return f"Sorry, booking failed: {result['error']}"

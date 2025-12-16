@@ -45,6 +45,16 @@ The LLM is just a **text utility** for discriminative tasks:
 | **LLM Role** | Parse only | Parse in Step 1 |
 | **Message** | "LLM is just a utility" | "Steps are modular" |
 
+## Performance
+
+| Metric | Value |
+|--------|-------|
+| **LLM Calls** | 1 (parsing only) |
+| **Expected Latency** | ~200-500ms |
+| **Latency Breakdown** | LLM: ~200-500ms, Local ops: <10ms |
+
+The single LLM call dominates latency. All business logic runs locally with no additional AI overhead.
+
 ## When to Use Pattern A
 
 - Compliance-heavy environments (banking, healthcare)
@@ -56,13 +66,12 @@ The LLM is just a **text utility** for discriminative tasks:
 
 ```bash
 cd pattern-a-ai-as-service
-source ../.venv/bin/activate
-python -m src.demo
+uv run src/demo.py
 ```
 
 Or with a custom message:
 ```bash
-python -m src.demo "Book tomorrow at 3pm, second slot"
+uv run src/demo.py "Book tomorrow at 3pm, second slot"
 ```
 
 ## API
