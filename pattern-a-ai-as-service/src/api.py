@@ -42,6 +42,6 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
 
 @app.get("/health")
-async def health():
+async def health() -> dict:
     """Health check endpoint."""
     return {"status": "healthy", "pattern": "A - AI as Service"}

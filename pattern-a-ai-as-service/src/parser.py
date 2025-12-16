@@ -72,7 +72,7 @@ async def parse_intent(message: str) -> ParsedIntent:
     if not message:
         raise ValueError("No message provided")
 
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = datetime.now().strftime("%Y-%m-%d (%A)")
 
     response = await _client.chat.completions.create(
         model="gpt-4o-mini",

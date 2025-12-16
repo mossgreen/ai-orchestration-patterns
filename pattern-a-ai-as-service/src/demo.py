@@ -21,7 +21,7 @@ from src.parser import parse_intent
 from src.booking import process_booking
 
 
-DEFAULT_MESSAGE = "Book this Saturday afternoon, first slot please"
+DEFAULT_MESSAGE = "Book tomorrow afternoon, first slot please"
 
 
 async def run_demo(message: str):
