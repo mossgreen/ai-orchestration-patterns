@@ -16,20 +16,21 @@ Read the blog first for architecture diagrams, trade-offs, and decision guides.
 
 | Pattern | Style | Runtime | Status |
 |---------|-------|---------|--------|
-| [A - AI as Service](./pattern-a-ai-as-service/) | No agent, LLM parses only | Shared | ⏳ Planned |
-| [B - Workflow (Shared)](./pattern-b-workflow-shared/) | Fixed sequence | Shared | ⏳ Planned |
-| [C - Workflow (Independent)](./pattern-c-workflow-independent/) | Fixed sequence | Independent services | 🚧 In Progress |
+| [A - AI as Service](./pattern-a-ai-as-service/) | No agent, LLM parses only | Shared | ✅ Done |
+| [B - Workflow (Single-Process)](./pattern-b-workflow-single-process/) | Fixed sequence | Single-Process | ✅ Done |
+| [C - Workflow (Multi-Process)](./pattern-c-workflow-multi-process/) | Fixed sequence | Multi-Process | ✅ Done |
 | [D - Function Calling](./pattern-d-function-calling/) | LLM suggests, you control loop | Shared | ✅ Done |
 | [E - Single Agent](./pattern-e-single-agent/) | Agent controls the loop | Shared | ✅ Done |
-| [F - Multi-Agent (Shared)](./pattern-f-multi-agent-shared/) | Manager routes dynamically | Shared | ⏳ Planned |
-| [G - Multi-Agent (Independent)](./pattern-g-multi-agent-independent/) | Manager routes dynamically | Independent services | ⏳ Planned |
-| [H - Bedrock Agent](./pattern-h-bedrock-agent/) | AWS-managed agent | Managed | ⏳ Planned |
+| [F - Multi-Agent (Single-Process)](./pattern-f-multi-agent-single-process/) | Manager routes dynamically | Single-Process | ✅ Done |
+| [G - Multi-Agent (Multi-Process)](./pattern-g-multi-agent-multi-process/) | Manager routes dynamically | Multi-Process | ✅ Done |
+| [H - Bedrock Agent](./pattern-h-bedrock-agent/) | AWS-managed agent | Managed | 📦 Code Ready (AWS Deploy via Terraform) |
 
-### Implementation Priority
+### Implementation Status
 
 ```
-Phase 1: C → D → E → G → H  (core patterns, in progress)
-Phase 2: A → B → F          (simpler variants, later)
+✅ Local Patterns: A → B → C → D → E → F → G  (all done!)
+📦 AWS Pattern:    H (code ready, deploy via Terraform)
+🚀 Coming Soon:    Terraform for all patterns
 ```
 
 ## The Spectrum
@@ -40,11 +41,11 @@ Control ←———————————————————————
   A       B       C       D       E       F       G       H
   │       │       │       │       │       │       │       │
   No    Workflow Workflow Function Single Multi  Multi  Bedrock
- Agent  (Shared) (Indep.) Calling  Agent  Agent  Agent  (Managed)
+ Agent  (Single) (Multi)  Calling  Agent  Agent  Agent  (Managed)
   │       │       │       │       │       │       │       │
  You    Fixed   Fixed    LLM     Agent  Manager Manager  AWS
 control steps   steps  suggests controls routes  routes manages
- all   (shared) (indep.) you      loop
+ all   (single) (multi)  you      loop
                         control
 ```
 
@@ -75,12 +76,12 @@ The difference: **who decides which function to call and when**.
 ai-orchestration-patterns/
 ├── README.md
 ├── pattern-a-ai-as-service/
-├── pattern-b-workflow-shared/
-├── pattern-c-workflow-independent/
+├── pattern-b-workflow-single-process/
+├── pattern-c-workflow-multi-process/
 ├── pattern-d-function-calling/
 ├── pattern-e-single-agent/
-├── pattern-f-multi-agent-shared/
-├── pattern-g-multi-agent-independent/
+├── pattern-f-multi-agent-single-process/
+├── pattern-g-multi-agent-multi-process/
 ├── pattern-h-bedrock-agent/
 ├── shared/
 │   └── booking-db/           # Mock DynamoDB for all patterns
@@ -101,9 +102,7 @@ pattern-x/
 
 ```bash
 cd pattern-d-function-calling
-uv venv && source .venv/bin/activate
-uv pip install -r requirements.txt
-python src/demo.py
+uv run src/demo.py
 ```
 
 ## Why This Repo?

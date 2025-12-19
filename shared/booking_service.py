@@ -3,27 +3,52 @@ Shared booking service for tennis court reservations.
 Used across all orchestration patterns as the core business logic.
 """
 
+import logging
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Optional
-from dataclasses import dataclass, field
+
+logger = logging.getLogger(__name__)
+
+
+class BookingError(Exception):
+    """Base exception for booking operations."""
+
+
+class SlotNotFoundError(BookingError):
+    """Requested slot does not exist."""
+
+    def __init__(self, slot_id: str) -> None:
+        self.slot_id = slot_id
+        super().__init__(f"Slot '{slot_id}' not found")
+
+
+class SlotNotAvailableError(BookingError):
+    """Requested slot is already booked."""
+
+    def __init__(self, slot_id: str) -> None:
+        self.slot_id = slot_id
+        super().__init__(f"Slot '{slot_id}' is already booked")
 
 
 @dataclass
 class Slot:
+    """A bookable time slot."""
+
     slot_id: str
     court: str
     date: str
     time: str
     duration_minutes: int = 60
     is_available: bool = True
-    booked_by: Optional[str] = None
 
 
 @dataclass
 class Booking:
+    """A confirmed booking."""
+
     booking_id: str
     slot_id: str
-    user_id: str
     court: str
     date: str
     time: str
@@ -64,9 +89,8 @@ class BookingService:
         sample_booked = list(self._slots.keys())[:5]
         for slot_id in sample_booked:
             self._slots[slot_id].is_available = False
-            self._slots[slot_id].booked_by = "existing_user"
 
-    def check_availability(self, date: str, time: Optional[str] = None) -> list[dict]:
+    def check_availability(self, date: str, time: Optional[str] = None) -> list[Slot]:
         """
         Check available slots for a given date and optional time.
 
@@ -75,47 +99,40 @@ class BookingService:
             time: Optional time in HH:MM format to filter specific slots
 
         Returns:
-            List of available slots with their details
+            List of available Slot objects, sorted by time then court
         """
-        available = []
+        available: list[Slot] = []
         for slot in self._slots.values():
             if slot.date == date and slot.is_available:
                 if time is None or slot.time == time:
-                    available.append({
-                        "slot_id": slot.slot_id,
-                        "court": slot.court,
-                        "date": slot.date,
-                        "time": slot.time,
-                        "duration_minutes": slot.duration_minutes,
-                    })
+                    available.append(slot)
 
-        # Sort by time, then by court
-        available.sort(key=lambda x: (x["time"], x["court"]))
+        available.sort(key=lambda s: (s.time, s.court))
+        logger.debug("Found %d available slots for %s", len(available), date)
         return available
 
-    def book(self, slot_id: str, user_id: str) -> dict:
+    def book(self, slot_id: str) -> Booking:
         """
-        Book a specific slot for a user.
+        Book a specific slot.
 
         Args:
             slot_id: The unique identifier of the slot to book
-            user_id: The user making the booking
 
         Returns:
-            Booking confirmation with details
+            Booking confirmation
+
+        Raises:
+            SlotNotFoundError: If the slot doesn't exist
+            SlotNotAvailableError: If the slot is already booked
         """
         if slot_id not in self._slots:
-            return {
-                "success": False,
-                "error": f"Slot {slot_id} not found",
-            }
+            logger.warning("Attempted to book non-existent slot: %s", slot_id)
+            raise SlotNotFoundError(slot_id)
 
         slot = self._slots[slot_id]
         if not slot.is_available:
-            return {
-                "success": False,
-                "error": f"Slot {slot_id} is already booked",
-            }
+            logger.warning("Attempted to book unavailable slot: %s", slot_id)
+            raise SlotNotAvailableError(slot_id)
 
         # Create booking
         self._booking_counter += 1
@@ -124,7 +141,6 @@ class BookingService:
         booking = Booking(
             booking_id=booking_id,
             slot_id=slot_id,
-            user_id=user_id,
             court=slot.court,
             date=slot.date,
             time=slot.time,
@@ -132,41 +148,23 @@ class BookingService:
 
         # Update slot and store booking
         slot.is_available = False
-        slot.booked_by = user_id
         self._bookings[booking_id] = booking
 
-        return {
-            "success": True,
-            "booking_id": booking_id,
-            "court": slot.court,
-            "date": slot.date,
-            "time": slot.time,
-            "message": f"Successfully booked {slot.court} on {slot.date} at {slot.time}",
-        }
+        logger.info(
+            "Booking confirmed: %s for %s on %s at %s",
+            booking_id,
+            slot.court,
+            slot.date,
+            slot.time,
+        )
+        return booking
 
-    def get_booking(self, booking_id: str) -> Optional[dict]:
+    def get_booking(self, booking_id: str) -> Optional[Booking]:
         """Retrieve booking details by ID."""
-        if booking_id not in self._bookings:
-            return None
-
-        booking = self._bookings[booking_id]
-        return {
-            "booking_id": booking.booking_id,
-            "court": booking.court,
-            "date": booking.date,
-            "time": booking.time,
-            "user_id": booking.user_id,
-            "status": booking.status,
-        }
+        return self._bookings.get(booking_id)
 
 
-# Singleton instance for use across the application
-_service_instance: Optional[BookingService] = None
-
-
-def get_booking_service() -> BookingService:
-    """Get or create the singleton booking service instance."""
-    global _service_instance
-    if _service_instance is None:
-        _service_instance = BookingService()
-    return _service_instance
+# Factory function for dependency injection
+def create_booking_service() -> BookingService:
+    """Create a new BookingService instance."""
+    return BookingService()
