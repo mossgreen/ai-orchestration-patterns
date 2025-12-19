@@ -5,6 +5,7 @@
 | Entity | File | Responsibility | AI Involved? |
 |--------|------|----------------|--------------|
 | **API** | `api.py` | HTTP endpoint, orchestration, error handling | No |
+| **Services** | `services.py` | Singleton BookingService (created at startup) | No |
 | **Parser** | `parser.py` | Convert natural language → structured data | **YES (ONLY HERE)** |
 | **OpenAI** | external | LLM service | External |
 | **BookingProcessor** | `booking.py` | Business logic, slot selection | No |
@@ -31,6 +32,10 @@ participant "OpenAI" as O
 participant "BookingProcessor" as B
 participant "BookingService" as S
 
+== App Startup ==
+note over A,S: BookingService singleton created (services.py)
+
+== Request Flow ==
 U -> A: POST /chat {message}
 
 note over A: Step 1: Parse (AI)
