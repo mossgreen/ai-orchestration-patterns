@@ -12,7 +12,7 @@ This is the key point of Pattern A:
 
 import logging
 
-from shared import Booking, BookingService, Slot, create_booking_service
+from shared import Booking, BookingService, Slot
 
 from .exceptions import InvalidSlotPreferenceError, NoSlotsAvailableError
 from .models import ParsedIntent
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 def process_booking(
     intent: ParsedIntent,
     *,
-    booking_service: BookingService | None = None,
+    booking_service: BookingService,
 ) -> str:
     """
     Process a booking request using YOUR hardcoded logic.
@@ -32,7 +32,7 @@ def process_booking(
 
     Args:
         intent: The parsed intent from the LLM (date, time extracted)
-        booking_service: Booking service (injected for testing)
+        booking_service: Booking service singleton (injected via FastAPI Depends)
 
     Returns:
         Human-readable response (confirmation or error message)
@@ -41,7 +41,7 @@ def process_booking(
         NoSlotsAvailableError: If no slots match the criteria
         InvalidSlotPreferenceError: If requested slot number exceeds available
     """
-    service = booking_service or create_booking_service()
+    service = booking_service
 
     logger.info("Processing booking: date=%s, time=%s", intent.date, intent.time)
 

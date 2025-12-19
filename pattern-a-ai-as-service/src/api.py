@@ -10,9 +10,10 @@ from typing import Awaitable, Callable
 from fastapi import Depends, FastAPI, HTTPException
 from pydantic import ValidationError
 
-from shared import BookingError
+from shared import BookingError, BookingService
 
 from .booking import process_booking
+from .services import booking_service
 from .exceptions import BookingError as PatternABookingError
 from .exceptions import ParseError
 from .models import ChatRequest, ChatResponse, HealthResponse, ParsedIntent
@@ -29,8 +30,8 @@ logger = logging.getLogger(__name__)
 
 
 app = FastAPI(
-    title="Tennis Court Booking - AI as Service (no agent)",
-    description="Pattern A: LLM parses text only, YOU control the business logic",
+    title="Pattern A: AI as Service",
+    description="LLM parses text only, YOU control the business logic",
     version="1.0.0",
 )
 
@@ -49,13 +50,24 @@ def get_parser() -> Callable[[str], Awaitable[ParsedIntent]]:
     return parse_intent
 
 
-def get_booking_processor() -> Callable[[ParsedIntent], str]:
+def get_booking_service() -> BookingService:
+    """
+    Provide BookingService singleton for dependency injection.
+
+    Returns the singleton instance created at module load.
+    """
+    return booking_service
+
+
+def get_booking_processor(
+    service: BookingService = Depends(get_booking_service),
+) -> Callable[[ParsedIntent], str]:
     """
     Provide booking processor function for dependency injection.
 
-    Returns the process_booking function that can be overridden in tests.
+    Returns the process_booking function bound to the singleton BookingService.
     """
-    return process_booking
+    return lambda intent: process_booking(intent, booking_service=service)
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -108,4 +120,4 @@ async def chat(
 @app.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
     """Health check endpoint."""
-    return HealthResponse(status="healthy", pattern="A - AI as Service")
+    return HealthResponse(status="healthy", pattern="A: AI as Service")

@@ -66,12 +66,12 @@ The single LLM call dominates latency. All business logic runs locally with no a
 
 ```bash
 cd pattern-a-ai-as-service
-uv run src/demo.py
+uv run python -m src.demo
 ```
 
 Or with a custom message:
 ```bash
-uv run src/demo.py "Book tomorrow at 3pm, second slot"
+uv run python -m src.demo "Book tomorrow at 3pm, second slot"
 ```
 
 ## API

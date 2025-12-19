@@ -17,6 +17,7 @@ import sys
 from .booking import process_booking
 from .exceptions import BookingError, ParseError
 from .parser import parse_intent
+from .services import booking_service
 from .settings import get_settings
 
 DEFAULT_MESSAGE = "Book tomorrow afternoon, first slot please"
@@ -50,7 +51,7 @@ async def run_demo(message: str) -> None:
         print("[YOUR CODE] Checking availability...")
         print("[YOUR CODE] Selecting slot...")
         print("[YOUR CODE] Booking...")
-        result = process_booking(intent)
+        result = process_booking(intent, booking_service=booking_service)
 
         print("-" * 40)
         print()
