@@ -8,21 +8,18 @@ No business logic, no decisions, no actions - just parsing.
 """
 
 import json
-import sys
+import logging
 from datetime import datetime
-from pathlib import Path
+from typing import Protocol
 
-from dotenv import load_dotenv
 from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletion
 
-# Setup paths for imports
-_src_dir = Path(__file__).parent
-sys.path.insert(0, str(_src_dir))
+from .exceptions import ParseError
+from .models import ParsedIntent
+from .settings import Settings, get_settings
 
-from models import ParsedIntent
-
-# Load .env from project root
-load_dotenv(_src_dir.parent.parent / ".env")
+logger = logging.getLogger(__name__)
 
 
 SYSTEM_PROMPT = """You are a text parser. Extract booking details from user messages.
@@ -44,52 +41,89 @@ Examples:
 - "Next Monday afternoon, second one" -> {{"date": "2024-01-22", "time": "14:00", "slot_preference": 2}}
 - "Give me the first available tomorrow" -> {{"date": "2024-01-16", "time": null, "slot_preference": 1}}
 
-Return ONLY valid JSON, no other text."""
+Return ONLY valid JSON
+"""
 
 
-# Initialize the OpenAI client
-_client = AsyncOpenAI()
+class OpenAIClient(Protocol):
+    """Protocol for OpenAI-compatible client."""
+
+    class Chat:
+        class Completions:
+            async def create(self, **kwargs) -> ChatCompletion: ...
+
+        completions: Completions
+
+    chat: Chat
 
 
-async def parse_intent(message: str) -> ParsedIntent:
+async def parse_intent(
+    message: str,
+    *,
+    client: OpenAIClient | None = None,
+    settings: Settings | None = None,
+) -> ParsedIntent:
     """
     Parse user message to extract booking intent.
 
     THIS IS THE ONLY AI COMPONENT IN PATTERN A.
 
-    The LLM acts as a "text utility" - converting natural language
-    into structured data. No business logic, no decisions.
-
     Args:
         message: The user's natural language booking request
+        client: OpenAI client (injected for testing)
+        settings: Application settings (injected for testing)
 
     Returns:
         ParsedIntent with extracted date/time
 
     Raises:
-        ValueError: If message is empty or parsing fails
+        ParseError: If message is empty or parsing fails
     """
-    if not message:
-        raise ValueError("No message provided")
+    if not message or not message.strip():
+        raise ParseError("No message provided")
+
+    settings = settings or get_settings()
+    client = client or AsyncOpenAI(api_key=settings.openai_api_key)
 
     today = datetime.now().strftime("%Y-%m-%d (%A)")
 
-    response = await _client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT.format(today=today)},
-            {"role": "user", "content": message}
-        ],
-        temperature=0,
-        response_format={"type": "json_object"}
-    )
+    logger.debug("Parsing message: %s", message[:50])
 
-    content = response.choices[0].message.content or "{}"
-    parsed = json.loads(content)
+    try:
+        response = await client.chat.completions.create(
+            model=settings.openai_model,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT.format(today=today)},
+                {"role": "user", "content": message},
+            ],
+            temperature=0,
+            response_format={"type": "json_object"},
+        )
+    except Exception as e:
+        logger.error("OpenAI API call failed: %s", e)
+        raise ParseError(f"Failed to parse message: {e}") from e
+
+    content = response.choices[0].message.content
+    if not content:
+        logger.error("OpenAI returned empty response")
+        raise ParseError("AI returned empty response")
+
+    try:
+        parsed = json.loads(content)
+    except json.JSONDecodeError as e:
+        logger.error("Failed to parse JSON response: %s", content)
+        raise ParseError(f"Invalid JSON from AI: {e}") from e
+
+    logger.info(
+        "Parsed intent: date=%s, time=%s, slot=%s",
+        parsed.get("date"),
+        parsed.get("time"),
+        parsed.get("slot_preference"),
+    )
 
     return ParsedIntent(
         date=parsed.get("date"),
         time=parsed.get("time"),
         slot_preference=parsed.get("slot_preference"),
-        raw_message=message
+        raw_message=message,
     )

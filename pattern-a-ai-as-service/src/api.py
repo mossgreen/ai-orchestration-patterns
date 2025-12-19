@@ -1,14 +1,31 @@
 """
-FastAPI wrapper for Pattern A: AI as Service.
+FastAPI application for Pattern A: AI as Service.
 
-Run with: uvicorn pattern-a-ai-as-service.src.api:app --reload
+Run with: uvicorn src.api:app --reload
 """
 
-from fastapi import FastAPI, HTTPException
+import logging
+from typing import Awaitable, Callable
 
-from .models import ChatRequest, ChatResponse
-from .parser import parse_intent
+from fastapi import Depends, FastAPI, HTTPException
+from pydantic import ValidationError
+
+from shared import BookingError
+
 from .booking import process_booking
+from .exceptions import BookingError as PatternABookingError
+from .exceptions import ParseError
+from .models import ChatRequest, ChatResponse, HealthResponse, ParsedIntent
+from .parser import parse_intent
+from .settings import get_settings
+
+# Configure logging
+settings = get_settings()
+logging.basicConfig(
+    level=settings.log_level,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 
 app = FastAPI(
@@ -18,8 +35,35 @@ app = FastAPI(
 )
 
 
+# ============================================================
+# Dependency Providers
+# ============================================================
+
+
+def get_parser() -> Callable[[str], Awaitable[ParsedIntent]]:
+    """
+    Provide parser function for dependency injection.
+
+    Returns the parse_intent function that can be overridden in tests.
+    """
+    return parse_intent
+
+
+def get_booking_processor() -> Callable[[ParsedIntent], str]:
+    """
+    Provide booking processor function for dependency injection.
+
+    Returns the process_booking function that can be overridden in tests.
+    """
+    return process_booking
+
+
 @app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest) -> ChatResponse:
+async def chat(
+    request: ChatRequest,
+    parser: Callable[[str], Awaitable[ParsedIntent]] = Depends(get_parser),
+    booking_processor: Callable[[ParsedIntent], str] = Depends(get_booking_processor),
+) -> ChatResponse:
     """
     Process a booking request.
 
@@ -29,19 +73,39 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
     The AI understands your intent, but won't make any decision for you.
     """
+    logger.info("Received chat request: %s", request.message[:50])
+
     try:
         # Step 1: Parse with AI (the ONLY AI component)
-        intent = await parse_intent(request.message)
+        intent = await parser(request.message)
 
         # Step 2: Process with YOUR code (no AI)
-        response = process_booking(intent)
+        response = booking_processor(intent)
 
         return ChatResponse(response=response)
+
+    except ParseError as e:
+        logger.warning("Parse error: %s", e)
+        raise HTTPException(status_code=400, detail=str(e))
+
+    except (PatternABookingError, BookingError) as e:
+        logger.warning("Booking error: %s", e)
+        raise HTTPException(status_code=400, detail=str(e))
+
+    except ValidationError as e:
+        logger.warning("Validation error: %s", e)
+        raise HTTPException(status_code=400, detail="Invalid data format")
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Log the full error for debugging, but don't expose details to client
+        logger.exception("Unexpected error processing request")
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        )
 
 
-@app.get("/health")
-async def health() -> dict:
+@app.get("/health", response_model=HealthResponse)
+async def health() -> HealthResponse:
     """Health check endpoint."""
-    return {"status": "healthy", "pattern": "A - AI as Service"}
+    return HealthResponse(status="healthy", pattern="A - AI as Service")
