@@ -83,7 +83,7 @@ async def parse_intent(
         raise ParseError("No message provided")
 
     settings = settings or get_settings()
-    client = client or AsyncOpenAI(api_key=settings.openai_api_key)
+    client = client or AsyncOpenAI(api_key=settings.get_openai_api_key())
 
     today = datetime.now().strftime("%Y-%m-%d (%A)")
 
