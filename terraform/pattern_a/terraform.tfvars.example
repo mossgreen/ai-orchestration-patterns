@@ -1,0 +1,17 @@
+# Pattern A: AI as Service
+# Copy this file to terraform.tfvars and update with your values
+
+# AWS region for Lambda and API Gateway
+aws_region = "us-east-1"
+
+# OpenAI API key (required)
+# Get from: https://platform.openai.com/api-keys
+openai_api_key = "sk-your-api-key-here"
+
+# OpenAI model (default: gpt-4o-mini - fast and cheap)
+openai_model = "gpt-4o-mini"
+
+# Lambda configuration
+lambda_timeout     = 30  # seconds - allows for OpenAI API latency
+lambda_memory      = 256 # MB - sufficient for FastAPI + OpenAI calls
+log_retention_days = 7   # days - keep costs low for demo
