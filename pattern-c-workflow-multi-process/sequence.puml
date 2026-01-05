@@ -1,0 +1,20 @@
+@startuml
+
+User -> Api: post/chat(message)
+    Api -> Workflow: run(message)
+        Workflow -> IntentParserService: execute({message})
+            IntentParserService -> OpenAI: chat.completions.create()
+            IntentParserService <-- OpenAI: json
+        Workflow <-- IntentParserService: ServiceResponse<ParsedIntent>
+        Workflow -> AvailabilityService: execute({intent})
+            AvailabilityService -> BookingService: check_availability(date, time)
+            AvailabilityService <-- BookingService: list[Slot]
+        Workflow <-- AvailabilityService: ServiceResponse<AvailabilityResult>
+        Workflow -> BookingHandlerService: execute({slot})
+            BookingHandlerService -> BookingService: book(slotId)
+            BookingHandlerService <-- BookingService: Booking
+        Workflow <-- BookingHandlerService: ServiceResponse<BookingResult>
+    Api <-- Workflow: result
+User <-- Api: ChatResponse
+
+@enduml

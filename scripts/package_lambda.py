@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Package the Pattern A Lambda function using Docker for AWS compatibility.
-Replaces build_lambda.sh
+Package Lambda functions using Docker for AWS compatibility.
+Usage: python package_lambda.py <pattern-name>
+Example: python package_lambda.py pattern-a-ai-as-service
 """
 
 import os
@@ -24,13 +25,18 @@ def run_command(cmd, cwd=None, env=None):
         print(f"Error executing command: {e}")
         sys.exit(1)
 
-def package_lambda():
+def package_lambda(pattern_name: str):
     """Package the Lambda function with all dependencies."""
-    
+
     # Define paths
     script_dir = Path(__file__).parent.absolute()
     project_root = script_dir.parent
-    pattern_dir = project_root / "pattern-a-ai-as-service"
+    pattern_dir = project_root / pattern_name
+
+    if not pattern_dir.exists():
+        print(f"Error: Pattern directory '{pattern_dir}' does not exist")
+        sys.exit(1)
+
     dist_dir = pattern_dir / "dist"
     build_dir = dist_dir / "build"
     
@@ -105,4 +111,11 @@ def package_lambda():
     return zip_path
 
 if __name__ == "__main__":
-    package_lambda()
+    if len(sys.argv) != 2:
+        print("Usage: python package_lambda.py <pattern-name>")
+        print("Example: python package_lambda.py pattern-a-ai-as-service")
+        print("         python package_lambda.py pattern-b-workflow-single-process")
+        sys.exit(1)
+
+    pattern_name = sys.argv[1]
+    package_lambda(pattern_name)

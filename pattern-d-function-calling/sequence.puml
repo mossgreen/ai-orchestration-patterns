@@ -1,0 +1,17 @@
+@startuml
+
+User -> Api: post/chat(message)
+    Api -> FunctionCaller: call(message)
+        loop until no tool_calls
+            FunctionCaller -> OpenAI: chat.completions.create(messages, tools)
+            FunctionCaller <-- OpenAI: response with tool_calls
+            FunctionCaller -> BookingService: execute suggested function
+            FunctionCaller <-- BookingService: result
+            note right: append tool result to messages
+        end
+        FunctionCaller -> OpenAI: chat.completions.create(messages, tools)
+        FunctionCaller <-- OpenAI: response (no tool_calls)
+    Api <-- FunctionCaller: final response
+User <-- Api: ChatResponse
+
+@enduml

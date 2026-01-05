@@ -1,72 +1,44 @@
-"""
-FastAPI wrapper for Pattern D: Function Calling.
-
-Run with:
-    cd pattern-d-function-calling
-    uv venv && source .venv/bin/activate
-    uv pip install -r requirements.txt
-    uvicorn src.api:app --reload --port 8001
-
-Uses true async I/O - the event loop handles multiple requests concurrently
-while waiting for OpenAI API responses.
-"""
+"""FastAPI application for Pattern D: Function Calling."""
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
 
-from .function_caller import run_conversation
+from shared import BookingError, BookingService
 
+from .function_caller import call
+from .models import ChatRequest, ChatResponse
 
 app = FastAPI(
-    title="Tennis Court Booking - Function Calling",
-    description="Pattern D: You control the loop - LLM suggests functions, your code executes them",
+    title="Pattern D: Function Calling",
+    description="LLM decides which functions to call in a loop",
     version="1.0.0",
 )
 
-
-class ChatRequest(BaseModel):
-    """Request model for chat endpoint."""
-
-    message: str = Field(
-        ...,
-        min_length=1,
-        description="User message to the booking system",
-        examples=["Book a tennis court for tomorrow at 3pm"],
-    )
-
-
-class ChatResponse(BaseModel):
-    """Response model for chat endpoint."""
-
-    response: str = Field(
-        ...,
-        description="System's response to the user",
-    )
+_booking_service = BookingService()
 
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
     """
-    Send a message to the booking system.
+    Process a booking request using function calling.
 
-    Pattern D: Function Calling
-    - Your code receives the request
-    - Calls OpenAI with available tools
-    - OpenAI suggests function calls
-    - YOUR CODE executes the functions
-    - YOUR CODE sends results back
-    - Loops until complete
-
-    Uses true async - event loop is free while waiting for OpenAI.
+    Pattern D flow:
+    1. Send user message to LLM with tool definitions
+    2. LLM decides which tools to call
+    3. Execute tools and return results to LLM
+    4. Repeat until LLM returns final response
     """
     try:
-        response = await run_conversation(request.message)
-        return ChatResponse(response=response)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="An error occurred processing your request")
+        result = await call(request.message, _booking_service)
+        return ChatResponse(response=result)
+
+    except BookingError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal error")
 
 
 @app.get("/health")
 async def health() -> dict:
     """Health check endpoint."""
-    return {"status": "healthy", "pattern": "D - Function Calling"}
+    return {"status": "healthy", "pattern": "D"}
