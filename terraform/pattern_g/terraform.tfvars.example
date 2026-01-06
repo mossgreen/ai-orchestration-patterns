@@ -1,0 +1,10 @@
+# Copy this file to terraform.tfvars and fill in your values
+
+aws_region     = "us-east-1"
+openai_api_key = "sk-your-openai-api-key"
+openai_model   = "gpt-4o-mini"
+
+# Optional overrides
+# lambda_timeout     = 60
+# lambda_memory      = 256
+# log_retention_days = 7

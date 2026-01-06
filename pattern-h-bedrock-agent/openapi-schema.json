@@ -1,0 +1,128 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Tennis Court Booking API",
+    "version": "1.0.0",
+    "description": "API for checking tennis court availability and booking slots"
+  },
+  "paths": {
+    "/check-availability": {
+      "post": {
+        "operationId": "check_availability",
+        "description": "Check available tennis court slots for a given date and optional time. Use this to find what courts are open.",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "description": "Date to check in YYYY-MM-DD format (e.g., 2024-12-15)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "time",
+            "in": "query",
+            "required": false,
+            "description": "Optional specific time in HH:MM format (e.g., 14:00) to filter slots",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of available tennis court slots",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "slots": {
+                      "type": "array",
+                      "description": "Available slots for the requested date/time",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "slot_id": {
+                            "type": "string",
+                            "description": "Unique identifier for booking this slot"
+                          },
+                          "court": {
+                            "type": "string",
+                            "description": "Court name (e.g., Court A)"
+                          },
+                          "date": {
+                            "type": "string",
+                            "description": "Date of the slot"
+                          },
+                          "time": {
+                            "type": "string",
+                            "description": "Time of the slot"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/book": {
+      "post": {
+        "operationId": "book_slot",
+        "description": "Book a specific tennis court slot using its slot_id. Call check_availability first to get available slot IDs.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "slot_id": {
+                    "type": "string",
+                    "description": "The slot ID from check_availability results to book"
+                  }
+                },
+                "required": ["slot_id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Booking confirmation with details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "booking_id": {
+                      "type": "string",
+                      "description": "Unique booking confirmation ID"
+                    },
+                    "court": {
+                      "type": "string",
+                      "description": "Booked court name"
+                    },
+                    "date": {
+                      "type": "string",
+                      "description": "Booking date"
+                    },
+                    "time": {
+                      "type": "string",
+                      "description": "Booking time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

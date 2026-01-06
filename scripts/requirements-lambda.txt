@@ -5,64 +5,53 @@ annotated-doc==0.0.4
 annotated-types==0.7.0
     # via pydantic
 anyio==4.12.0
+    # via starlette
+boto3==1.42.22
+    # via pattern-h-bedrock-agent (pyproject.toml)
+botocore==1.42.22
     # via
-    #   httpx
-    #   openai
-    #   starlette
-certifi==2025.11.12
-    # via
-    #   httpcore
-    #   httpx
+    #   boto3
+    #   s3transfer
 click==8.3.1
     # via uvicorn
-distro==1.9.0
-    # via openai
 fastapi==0.126.0
-    # via pattern-d-function-calling (pyproject.toml)
+    # via pattern-h-bedrock-agent (pyproject.toml)
 h11==0.16.0
-    # via
-    #   httpcore
-    #   uvicorn
-httpcore==1.0.9
-    # via httpx
-httpx==0.28.1
-    # via openai
+    # via uvicorn
 idna==3.11
+    # via anyio
+jmespath==1.0.1
     # via
-    #   anyio
-    #   httpx
-jiter==0.12.0
-    # via openai
+    #   boto3
+    #   botocore
 mangum==0.20.0
-    # via pattern-d-function-calling (pyproject.toml)
-openai==2.14.0
-    # via pattern-d-function-calling (pyproject.toml)
+    # via pattern-h-bedrock-agent (pyproject.toml)
 pydantic==2.12.5
     # via
-    #   pattern-d-function-calling (pyproject.toml)
+    #   pattern-h-bedrock-agent (pyproject.toml)
     #   fastapi
-    #   openai
     #   pydantic-settings
 pydantic-core==2.41.5
     # via pydantic
 pydantic-settings==2.12.0
-    # via pattern-d-function-calling (pyproject.toml)
+    # via pattern-h-bedrock-agent (pyproject.toml)
+python-dateutil==2.9.0.post0
+    # via botocore
 python-dotenv==1.2.1
     # via
-    #   pattern-d-function-calling (pyproject.toml)
+    #   pattern-h-bedrock-agent (pyproject.toml)
     #   pydantic-settings
-sniffio==1.3.1
-    # via openai
+s3transfer==0.16.0
+    # via boto3
+six==1.17.0
+    # via python-dateutil
 starlette==0.50.0
     # via fastapi
-tqdm==4.67.1
-    # via openai
 typing-extensions==4.15.0
     # via
     #   anyio
     #   fastapi
     #   mangum
-    #   openai
     #   pydantic
     #   pydantic-core
     #   starlette
@@ -71,8 +60,10 @@ typing-inspection==0.4.2
     # via
     #   pydantic
     #   pydantic-settings
+urllib3==2.6.2
+    # via botocore
 uvicorn==0.38.0
-    # via pattern-d-function-calling (pyproject.toml)
+    # via pattern-h-bedrock-agent (pyproject.toml)
 
 # The following packages were excluded from the output:
 # ai-orchestration-shared

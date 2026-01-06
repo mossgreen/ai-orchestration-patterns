@@ -1,0 +1,9 @@
+# Copy this file to terraform.tfvars
+
+aws_region       = "us-east-1"
+foundation_model = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+
+# Optional overrides
+# lambda_timeout     = 60
+# lambda_memory      = 256
+# log_retention_days = 7

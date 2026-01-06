@@ -9,24 +9,22 @@ The agent autonomously manages the conversation loop, deciding when to:
 Key difference from Pattern D: The agent controls the loop, not your code.
 """
 
-import sys
+import os
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Optional
 
-from dotenv import load_dotenv
 from agents import Agent, Runner, RunContextWrapper, function_tool
 
-# Load .env from project root
-load_dotenv(Path(__file__).parents[2] / ".env")
+from .settings import get_settings
+from shared import create_booking_service
 
-# Add parent directory to path for shared imports
-sys.path.insert(0, str(__file__).rsplit("/", 3)[0])
-from shared.booking_service import get_booking_service
+# Set OpenAI API key for the Agents SDK
+settings = get_settings()
+os.environ["OPENAI_API_KEY"] = settings.get_openai_api_key()
 
 
 # Initialize the booking service
-booking_service = get_booking_service()
+booking_service = create_booking_service()
 
 
 @function_tool
@@ -48,35 +46,33 @@ def check_availability(date: str, time: Optional[str] = None) -> str:
 
     result = f"Available slots for {date}:\n"
     for slot in slots:
-        result += f"  - {slot['court']} at {slot['time']} (ID: {slot['slot_id']})\n"
+        result += f"  - {slot.court} at {slot.time} (ID: {slot.slot_id})\n"
 
     return result
 
 
 @function_tool
-def book_slot(slot_id: str, user_id: str = "guest") -> str:
+def book_slot(slot_id: str) -> str:
     """
     Book a specific tennis court slot.
 
     Args:
         slot_id: The slot ID from check_availability results
-        user_id: User making the booking (defaults to "guest")
 
     Returns:
         Booking confirmation or error message
     """
-    result = booking_service.book(slot_id, user_id)
-
-    if result["success"]:
+    try:
+        booking = booking_service.book(slot_id)
         return (
             f"Booking confirmed!\n"
-            f"  Booking ID: {result['booking_id']}\n"
-            f"  Court: {result['court']}\n"
-            f"  Date: {result['date']}\n"
-            f"  Time: {result['time']}"
+            f"  Booking ID: {booking.booking_id}\n"
+            f"  Court: {booking.court}\n"
+            f"  Date: {booking.date}\n"
+            f"  Time: {booking.time}"
         )
-    else:
-        return f"Booking failed: {result['error']}"
+    except Exception as e:
+        return f"Booking failed: {e}"
 
 
 def get_instructions(

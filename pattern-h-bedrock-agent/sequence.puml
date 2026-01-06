@@ -1,0 +1,16 @@
+@startuml
+
+User -> Api: post/chat(message)
+    Api -> InvokerLambda: invoke
+        InvokerLambda -> BedrockAgent: invoke_agent(message)
+            note right: AWS manages reasoning loop
+            BedrockAgent -> ActionLambda: action_group invocation
+                ActionLambda -> BookingService: check_availability / book
+                ActionLambda <-- BookingService: result
+            BedrockAgent <-- ActionLambda: action result
+            note right: Agent may loop for more actions
+        InvokerLambda <-- BedrockAgent: final response
+    Api <-- InvokerLambda: response
+User <-- Api: ChatResponse
+
+@enduml

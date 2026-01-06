@@ -1,0 +1,17 @@
+@startuml
+
+User -> Api: post/chat(message)
+    Api -> ManagerLambda: invoke
+        note right: Manager decides routing via HTTP
+        ManagerLambda -> AvailabilityLambda: HTTP POST /process
+            AvailabilityLambda -> BookingService: check_availability
+            AvailabilityLambda <-- BookingService: slots
+        ManagerLambda <-- AvailabilityLambda: available slots
+        ManagerLambda -> BookingLambda: HTTP POST /process
+            BookingLambda -> BookingService: book
+            BookingLambda <-- BookingService: confirmation
+        ManagerLambda <-- BookingLambda: booking result
+    Api <-- ManagerLambda: final_output
+User <-- Api: ChatResponse
+
+@enduml

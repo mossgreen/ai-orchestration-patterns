@@ -5,35 +5,16 @@ Run with: uvicorn pattern-e.src.api:app --reload
 """
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
 
 from .agent import run_agent
+from .models import ChatRequest, ChatResponse
 
 
 app = FastAPI(
-    title="Tennis Court Booking Agent",
-    description="Pattern E: Single Agent - The agent autonomously manages the booking workflow",
+    title="Pattern E: Single Agent",
+    description="The agent autonomously manages the booking workflow",
     version="1.0.0",
 )
-
-
-class ChatRequest(BaseModel):
-    """Request model for chat endpoint."""
-
-    message: str = Field(
-        ...,
-        description="User message to the booking agent",
-        examples=["Book a tennis court for tomorrow at 3pm"],
-    )
-
-
-class ChatResponse(BaseModel):
-    """Response model for chat endpoint."""
-
-    response: str = Field(
-        ...,
-        description="Agent's response to the user",
-    )
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -56,6 +37,6 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
 
 @app.get("/health")
-async def health():
+async def health() -> dict:
     """Health check endpoint."""
-    return {"status": "healthy", "pattern": "E - Single Agent"}
+    return {"status": "healthy", "pattern": "E"}

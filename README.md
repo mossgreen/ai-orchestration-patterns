@@ -23,14 +23,13 @@ Read the blog first for architecture diagrams, trade-offs, and decision guides.
 | [E - Single Agent](./pattern-e-single-agent/) | Agent controls the loop | Shared | ✅ Done |
 | [F - Multi-Agent (Single-Process)](./pattern-f-multi-agent-single-process/) | Manager routes dynamically | Single-Process | ✅ Done |
 | [G - Multi-Agent (Multi-Process)](./pattern-g-multi-agent-multi-process/) | Manager routes dynamically | Multi-Process | ✅ Done |
-| [H - Bedrock Agent](./pattern-h-bedrock-agent/) | AWS-managed agent | Managed | 📦 Code Ready (AWS Deploy via Terraform) |
+| [H - Bedrock Agent](./pattern-h-bedrock-agent/) | AWS-managed agent | Managed | ✅ Done |
 
 ### Implementation Status
 
 ```
-✅ Local Patterns: A → B → C → D → E → F → G  (all done!)
-📦 AWS Pattern:    H (code ready, deploy via Terraform)
-🚀 Coming Soon:    Terraform for all patterns
+✅ Local Patterns: A → B → C → D → E → F → G → H (all done!)
+☁️ AWS Deployed:   A → B → C → D → E → F → G → H (live on Lambda)
 ```
 
 ## The Spectrum
@@ -48,6 +47,21 @@ control steps   steps  suggests controls routes  routes manages
  all   (single) (multi)  you      loop
                         control
 ```
+
+## Live Demo
+
+Try the deployed patterns (AWS Lambda + API Gateway):
+
+| Pattern | Health Check | Chat Endpoint |
+|---------|--------------|---------------|
+| A - AI as Service | [Health](https://7jtqo8ncu4.execute-api.us-east-1.amazonaws.com/health) | `curl -X POST https://7jtqo8ncu4.execute-api.us-east-1.amazonaws.com/chat -H "Content-Type: application/json" -d '{"message": "Book tomorrow at 3pm"}'` |
+| B - Workflow (Single) | [Health](https://jwmoovw1se.execute-api.us-east-1.amazonaws.com/health) | `curl -X POST https://jwmoovw1se.execute-api.us-east-1.amazonaws.com/chat -H "Content-Type: application/json" -d '{"message": "Book tomorrow at 3pm"}'` |
+| C - Workflow (Multi) | [Health](https://1ywzwz1hog.execute-api.us-east-1.amazonaws.com/health) | `curl -X POST https://1ywzwz1hog.execute-api.us-east-1.amazonaws.com/chat -H "Content-Type: application/json" -d '{"message": "Book tomorrow at 3pm"}'` |
+| D - Function Calling | [Health](https://3sd40p0zz4.execute-api.us-east-1.amazonaws.com/health) | `curl -X POST https://3sd40p0zz4.execute-api.us-east-1.amazonaws.com/chat -H "Content-Type: application/json" -d '{"message": "Book tomorrow at 3pm"}'` |
+| E - Single Agent | [Health](https://ok1ro2wdf1.execute-api.us-east-1.amazonaws.com/health) | `curl -X POST https://ok1ro2wdf1.execute-api.us-east-1.amazonaws.com/chat -H "Content-Type: application/json" -d '{"message": "Book tomorrow at 3pm"}'` |
+| F - Multi-Agent (Single) | [Health](https://seymcwtuh9.execute-api.us-east-1.amazonaws.com/health) | `curl -X POST https://seymcwtuh9.execute-api.us-east-1.amazonaws.com/chat -H "Content-Type: application/json" -d '{"message": "Book tomorrow at 3pm"}'` |
+| G - Multi-Agent (Multi) | [Health](https://nwnh1ys1u8.execute-api.us-east-1.amazonaws.com/health) | `curl -X POST https://nwnh1ys1u8.execute-api.us-east-1.amazonaws.com/chat -H "Content-Type: application/json" -d '{"message": "Book tomorrow at 3pm"}'` |
+| H - Bedrock Agent | [Health](https://dck1pppjal.execute-api.us-east-1.amazonaws.com/health) | `curl -X POST https://dck1pppjal.execute-api.us-east-1.amazonaws.com/chat -H "Content-Type: application/json" -d '{"message": "Book tomorrow at 3pm"}'` |
 
 ## Tech Stack
 

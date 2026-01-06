@@ -1,0 +1,17 @@
+@startuml
+
+User -> Api: post/chat(message)
+    Api -> ManagerAgent: Runner.run(manager, message)
+        note right: Manager decides routing
+        ManagerAgent -> AvailabilitySpecialist: handoff (availability queries)
+            AvailabilitySpecialist -> BookingService: check_availability
+            AvailabilitySpecialist <-- BookingService: slots
+        ManagerAgent <-- AvailabilitySpecialist: available slots
+        ManagerAgent -> BookingSpecialist: handoff (booking requests)
+            BookingSpecialist -> BookingService: book
+            BookingSpecialist <-- BookingService: confirmation
+        ManagerAgent <-- BookingSpecialist: booking result
+    Api <-- ManagerAgent: final_output
+User <-- Api: ChatResponse
+
+@enduml

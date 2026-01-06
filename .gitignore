@@ -208,3 +208,9 @@ __marimo__/
 
 # Claude Code context
 CLAUDE.md
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
