@@ -70,8 +70,7 @@ Try the deployed patterns (AWS Lambda + API Gateway):
 - **AI Providers:** OpenAI, Anthropic Claude, AWS Bedrock
 - **Agent Framework:** OpenAI Agents SDK
 - **API:** FastAPI
-- **Infrastructure:** AWS Lambda, Terraform, AWS CDK
-- **Database:** DynamoDB
+- **Infrastructure:** AWS Lambda, Terraform
 
 ## Use Case
 

@@ -1,10 +1,10 @@
 @startuml
 
 User -> Api: post/chat(message)
-    Api -> Parser: parse_intent(message)
-        Parser -> OpenAI: chat.completions.create()
-        Parser <-- OpenAI: json
-    Api <-- Parser: ParsedIntent
+    Api -> IntentParser: parse_intent(message)
+        IntentParser -> OpenAI: chat.completions.create()
+        IntentParser <-- OpenAI: json
+    Api <-- IntentParser: ParsedIntent
     Api -> BookingProcessor: process_booking(intent)
         BookingProcessor -> BookingService: checkAvailability(date, time)
         BookingProcessor <-- BookingService: list[Slot]

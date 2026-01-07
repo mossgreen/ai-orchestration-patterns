@@ -2,11 +2,11 @@
 
 User -> Api: post/chat(message)
     Api -> AgentSDK: Runner.run(agent, message)
-        note right: OpenAI Agents SDK handles the loop
-        AgentSDK -> OpenAI: reasoning + tool execution
-        AgentSDK <-- OpenAI: autonomous iterations
-        AgentSDK -> BookingService: tool calls (as needed)
-        AgentSDK <-- BookingService: results
+        note right: OpenAI Agents SDK (uses OpenAI internally)
+        loop until task complete
+            AgentSDK -> BookingService: tool calls (as needed)
+            AgentSDK <-- BookingService: results
+        end
     Api <-- AgentSDK: final_output
 User <-- Api: ChatResponse
 

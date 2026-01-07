@@ -2,18 +2,18 @@
 
 User -> Api: post/chat(message)
     Api -> Workflow: run(message)
-        Workflow -> IntentParserService: execute({message})
-            IntentParserService -> OpenAI: chat.completions.create()
-            IntentParserService <-- OpenAI: json
-        Workflow <-- IntentParserService: ServiceResponse<ParsedIntent>
-        Workflow -> AvailabilityService: execute({intent})
-            AvailabilityService -> BookingService: check_availability(date, time)
-            AvailabilityService <-- BookingService: list[Slot]
-        Workflow <-- AvailabilityService: ServiceResponse<AvailabilityResult>
-        Workflow -> BookingHandlerService: execute({slot})
-            BookingHandlerService -> BookingService: book(slotId)
-            BookingHandlerService <-- BookingService: Booking
-        Workflow <-- BookingHandlerService: ServiceResponse<BookingResult>
+        Workflow -> IntentParserLambda: execute({message})
+            IntentParserLambda -> OpenAI: chat.completions.create()
+            IntentParserLambda <-- OpenAI: json
+        Workflow <-- IntentParserLambda: ServiceResponse<ParsedIntent>
+        Workflow -> AvailabilityLambda: execute({intent})
+            AvailabilityLambda -> BookingService: check_availability(date, time)
+            AvailabilityLambda <-- BookingService: list[Slot]
+        Workflow <-- AvailabilityLambda: ServiceResponse<AvailabilityResult>
+        Workflow -> BookingLambda: execute({slot})
+            BookingLambda -> BookingService: book(slotId)
+            BookingLambda <-- BookingService: Booking
+        Workflow <-- BookingLambda: ServiceResponse<BookingResult>
     Api <-- Workflow: result
 User <-- Api: ChatResponse
 

@@ -57,6 +57,6 @@ output "setup_instructions" {
       Action:  aws logs tail /aws/lambda/ai-patterns-pattern-h-action --follow
       Invoker: aws logs tail /aws/lambda/ai-patterns-pattern-h-invoker --follow
 
-    Note: Bedrock Agent uses Claude 3.5 Sonnet. Ensure model access is enabled in AWS Console.
+    Note: Bedrock Agent uses ${var.foundation_model}. Ensure model access is enabled in AWS Console.
   EOT
 }
