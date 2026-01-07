@@ -120,7 +120,8 @@ resource "aws_iam_role_policy" "lambda_policy" {
       {
         Effect = "Allow"
         Action = [
-          "bedrock:InvokeAgent"
+          "bedrock:InvokeAgent",
+          "bedrock-agent-runtime:InvokeAgent"
         ]
         Resource = "*"
       }
@@ -246,6 +247,8 @@ resource "aws_bedrockagent_agent" "booking" {
   instruction = <<-EOT
     You are a helpful tennis court booking assistant.
 
+    IMPORTANT: Today's date is ${formatdate("YYYY-MM-DD", timestamp())}. Use this to calculate relative dates.
+
     Your job is to help users:
     1. Check available tennis court slots for specific dates and times
     2. Book tennis court slots for them
@@ -257,7 +260,7 @@ resource "aws_bedrockagent_agent" "booking" {
     - Always confirm the booking details after a successful booking
 
     GUIDELINES:
-    - Convert relative dates like "tomorrow" or "next Monday" to YYYY-MM-DD format
+    - Convert relative dates like "tomorrow" or "next Monday" to YYYY-MM-DD format based on today's date
     - If no specific time is mentioned, show all available slots for the day
     - Be concise but friendly
     - Always use the action group tools to check real availability - never make up slots

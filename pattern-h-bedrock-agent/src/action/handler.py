@@ -68,10 +68,13 @@ def _check_availability(params: dict) -> dict:
     date = params.get("date")
     time = params.get("time")
 
+    print(f"[DEBUG] check_availability called with date={date}, time={time}")
+
     if not date:
         return {"error": "Date parameter is required"}
 
     slots = booking_service.check_availability(date, time)
+    print(f"[DEBUG] Found {len(slots)} slots")
 
     return {
         "slots": [
