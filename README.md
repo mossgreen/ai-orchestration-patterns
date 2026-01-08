@@ -85,6 +85,12 @@ The difference: **who decides which function to call and when**.
 
 ## Repo Structure
 
+The repository is organized into three main areas:
+
+- **`pattern-*/` folders** - Each contains a complete implementation of one orchestration pattern with source code, dependencies, and sequence diagrams
+- **`terraform/` folder** - AWS infrastructure (Lambda + API Gateway) to deploy each pattern. One subfolder per pattern.
+- **`shared/` folder** - Common booking service logic reused across all patterns to keep the focus on orchestration differences, not business logic
+
 ```
 ai-orchestration-patterns/
 ├── README.md
@@ -96,19 +102,16 @@ ai-orchestration-patterns/
 ├── pattern-f-multi-agent-single-process/
 ├── pattern-g-multi-agent-multi-process/
 ├── pattern-h-bedrock-agent/
+├── scripts/
+│   ├── package_lambda.py     # Build tool for patterns A-F
+│   └── requirements-lambda.txt
 ├── shared/
-│   └── booking-db/           # Mock DynamoDB for all patterns
-└── terraform/                # Infrastructure as code (coming soon)
-```
-
-Each pattern folder:
-
-```
-pattern-x/
-├── README.md                 # Pattern-specific docs
-├── src/                      # Implementation
-├── infra/                    # Terraform / CDK
-└── tests/
+│   └── booking_service.py    # Mock booking service (all patterns)
+└── terraform/                # Infrastructure (Lambda + API Gateway)
+    ├── pattern_a/
+    ├── pattern_b/
+    ├── ...
+    └── pattern_h/
 ```
 
 ## Getting Started
