@@ -113,10 +113,102 @@ pattern-x/
 
 ## Getting Started
 
+### Prerequisites
+
+**Required:**
+- Python 3.12+
+- [UV](https://github.com/astral-sh/uv) (package manager)
+- Docker (for AWS Lambda builds)
+
+**For AWS deployment:**
+- AWS CLI configured
+- Terraform 1.5+
+- OpenAI API key (patterns A-G)
+- AWS account with Bedrock access (pattern H)
+
+### Local Development
+
+Run patterns locally without AWS:
+
 ```bash
+# Install dependencies
 cd pattern-d-function-calling
+uv sync
+
+# Run demo
 uv run src/demo.py
 ```
+
+### AWS Deployment
+
+#### Step 1: Configure Secrets
+
+```bash
+# Create .env file (gitignored)
+cat > .env << EOF
+OPENAI_API_KEY=sk-...
+EOF
+```
+
+#### Step 2: Build Lambda Package
+
+**For Patterns A-F** (single Lambda):
+```bash
+python scripts/package_lambda.py pattern-a-ai-as-service
+```
+
+**For Pattern G** (3 Lambdas - manager, availability, booking):
+```bash
+cd pattern-g-multi-agent-multi-process
+./build.sh
+```
+
+**For Pattern H** (2 Lambdas - action, invoker):
+```bash
+cd pattern-h-bedrock-agent
+./build.sh
+```
+
+#### Step 3: Deploy with Terraform
+
+```bash
+cd terraform/pattern_a
+
+# First time: copy example config
+cp terraform.tfvars.example terraform.tfvars
+
+# Edit terraform.tfvars:
+# - Add your OpenAI API key
+# - (Pattern H only) Choose foundation model
+
+# Deploy
+terraform init
+terraform apply
+```
+
+#### Step 4: Test Deployment
+
+```bash
+# Get endpoint
+terraform output api_endpoint
+
+# Test health
+curl $(terraform output -raw api_endpoint)/health
+
+# Test chat
+curl -X POST $(terraform output -raw api_endpoint)/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Book tomorrow at 3pm"}'
+```
+
+#### Pattern-Specific Notes
+
+**Pattern H (Bedrock Agent):**
+- Uses AWS Nova Pro by default (no agreement required)
+- Alternative models require Bedrock model access:
+  1. AWS Console → Bedrock → Model access
+  2. Enable desired model (e.g., Claude Haiku 4.5)
+  3. Update `foundation_model` in terraform.tfvars
 
 ## Why This Repo?
 
